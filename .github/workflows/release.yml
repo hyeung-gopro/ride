@@ -20,12 +20,6 @@ jobs:
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
             archive_ext: tar.gz
-          - target: x86_64-apple-darwin
-            os: macos-13
-            archive_ext: tar.gz
-          - target: aarch64-apple-darwin
-            os: macos-14
-            archive_ext: tar.gz
           - target: x86_64-pc-windows-msvc
             os: windows-latest
             archive_ext: zip
@@ -71,9 +65,47 @@ jobs:
           path: ${{ env.ASSET }}
           if-no-files-found: error
 
+  build-macos:
+    name: Build (macOS, both architectures)
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - name: Build and package both macOS targets
+        shell: bash
+        run: |
+          for target in aarch64-apple-darwin x86_64-apple-darwin; do
+            cargo build --release --locked --target "$target"
+            staging="ride-${{ github.ref_name }}-$target"
+            mkdir "$staging"
+            cp "target/$target/release/ride" "$staging/"
+            cp README.md "$staging/"
+            tar czf "$staging.tar.gz" "$staging"
+          done
+
+      - name: Upload Apple Silicon artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ride-${{ github.ref_name }}-aarch64-apple-darwin.tar.gz
+          path: ride-${{ github.ref_name }}-aarch64-apple-darwin.tar.gz
+          if-no-files-found: error
+
+      - name: Upload Intel artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ride-${{ github.ref_name }}-x86_64-apple-darwin.tar.gz
+          path: ride-${{ github.ref_name }}-x86_64-apple-darwin.tar.gz
+          if-no-files-found: error
+
   release:
     name: Create GitHub Release
-    needs: build
+    needs: [build, build-macos]
     runs-on: ubuntu-latest
     steps:
       - name: Download all artifacts
