@@ -139,7 +139,7 @@ fn run(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>, mut app: App) -> R
                         }
                         continue;
                     }
-                    KeyCode::Char('b') if ctrl => {
+                    KeyCode::Char('w') if ctrl => {
                         app.toggle_sidebar();
                         continue;
                     }

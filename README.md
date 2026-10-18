@@ -129,7 +129,7 @@ normally. Undo/redo are still per-line, not per-block-edit - undoing a
 column insert across 5 lines takes 5 undos, same underlying limitation as
 the lack of CommandProcessor-style grouping noted above.
 
-**Global**: Ctrl+B jumps focus to the tree (showing it first if hidden);
+**Global**: Ctrl+W jumps focus to the tree (showing it first if hidden);
 pressing it again while the tree already has focus hides it and returns
 focus to the editor — same convention as IntelliJ's own tool-window
 shortcuts (e.g. Cmd+1 for Project). Ctrl+Q quits immediately; Esc needs

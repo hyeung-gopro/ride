@@ -360,7 +360,7 @@ fn draw_status_bar(
         return;
     }
     let text = format!(
-        " {} {}  Ln {}, Col {}   ^B sidebar  ^N new file  ^O open file  :<n>/^G goto line  / or ^F find{}  Ctrl/Cmd+S save  +Z undo  +Shift+Z/+Y redo  Ctrl+8 column mode  Ctrl+Q quit",
+        " {} {}  Ln {}, Col {}   ^W sidebar  ^N new file  ^O open file  :<n>/^G goto line  / or ^F find{}  Ctrl/Cmd+S save  +Z undo  +Shift+Z/+Y redo  Ctrl+8 column mode  Ctrl+Q quit",
         editor.file_name(),
         modified,
         line + 1,
