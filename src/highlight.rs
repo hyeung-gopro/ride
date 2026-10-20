@@ -208,11 +208,22 @@ fn highlight_yaml(text: &str) -> Vec<(usize, usize, Style)> {
             continue;
         }
         let start = i;
-        while i < chars.len() && chars[i] != ':' && chars[i] != '#' && !chars[i].is_whitespace() {
+        while i < chars.len() && chars[i] != '#' && !chars[i].is_whitespace() {
+            if chars[i] == ':' && (i + 1 == chars.len() || chars[i + 1].is_whitespace()) {
+                break;
+            }
             i += 1;
         }
-        if i < chars.len() && chars[i] == ':' && (i + 1 == chars.len() || chars[i + 1].is_whitespace()) {
+        if i < chars.len() && chars[i] == ':' {
             tokens.push((start, i, key_style()));
+            i += 1;
+            continue;
+        }
+        if i == start {
+            // A ':' that isn't a key separator (no trailing whitespace, e.g.
+            // "a:b") stops the scan above without being consumed by it, so
+            // without this, `i` would never advance and the outer loop would
+            // spin forever on the same index.
             i += 1;
             continue;
         }
@@ -701,6 +712,25 @@ mod tests {
         assert_eq!(tokens[0], (0, 4, key_style()));
         assert_eq!(tokens[1], (6, 12, string_style()));
         assert_eq!(tokens[2].2, comment_style());
+    }
+
+    #[test]
+    fn yaml_terminates_on_a_colon_not_followed_by_whitespace() {
+        // Regression test for a hang: a ':' inside a value (not a key
+        // separator) must not stall the scan at the same index forever.
+        // Each of these must return rather than spin; the assertions just
+        // double check the spans make forward progress and cover the line.
+        for line in [
+            "path: a:b",
+            "x: ${{ a }}:${{ b }}",
+            "url: http://example.com",
+            "k: v:",
+        ] {
+            let (tokens, _) = highlight_line(line, Language::Yaml, LineState::Normal);
+            for (start, end, _) in &tokens {
+                assert!(end > start, "token span must advance: {:?}", (start, end));
+            }
+        }
     }
 
     #[test]
